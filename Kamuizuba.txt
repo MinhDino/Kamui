@@ -1,64 +1,126 @@
 local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
+local Noclip = Instance.new("ScreenGui")
+local BG = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Toggle = Instance.new("TextButton")
+local StatusPF = Instance.new("TextLabel")
+local Status = Instance.new("TextLabel")
+local Credit = Instance.new("TextLabel")
+
 local Plr = Players.LocalPlayer
-local Character = Plr.Character or Plr.CharacterAdded:Wait()
+local Clipon = false
+local KamuiEffect = "rbxassetid://13226206004" -- Hiệu ứng Kamui portal
 
--- Tạo hiệu ứng xoáy Kamui
+Noclip.Name = "Noclip"
+Noclip.Parent = game.CoreGui
+
+BG.Name = "BG"
+BG.Parent = Noclip
+BG.BackgroundColor3 = Color3.new(0, 0, 0) -- Chỉnh màu đen
+BG.BorderColor3 = Color3.new(0.1, 0.1, 0.1)
+BG.BorderSizePixel = 2
+BG.Position = UDim2.new(0.15, 0, 0.82, 0)
+BG.Size = UDim2.new(0, 210, 0, 127)
+BG.Active = true
+BG.Draggable = true
+
+Title.Name = "Title"
+Title.Parent = BG
+Title.BackgroundColor3 = Color3.new(0, 0, 0.5) -- Xanh tím Kamui
+Title.BorderColor3 = Color3.new(0, 0, 0.3)
+Title.BorderSizePixel = 2
+Title.Size = UDim2.new(0, 210, 0, 33)
+Title.Font = Enum.Font.Highway
+Title.Text = "Kamui Noclip"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 30
+Title.TextStrokeTransparency = 0
+
+Toggle.Parent = BG
+Toggle.BackgroundColor3 = Color3.new(0, 0, 0.5)
+Toggle.BorderColor3 = Color3.new(0, 0, 0.3)
+Toggle.BorderSizePixel = 2
+Toggle.Position = UDim2.new(0.15, 0, 0.37, 0)
+Toggle.Size = UDim2.new(0, 146, 0, 36)
+Toggle.Font = Enum.Font.Highway
+Toggle.Text = "Toggle"
+Toggle.TextColor3 = Color3.new(1, 1, 1)
+Toggle.TextSize = 25
+Toggle.TextStrokeTransparency = 0
+
+StatusPF.Name = "StatusPF"
+StatusPF.Parent = BG
+StatusPF.BackgroundTransparency = 1
+StatusPF.Position = UDim2.new(0.3, 0, 0.7, 0)
+StatusPF.Size = UDim2.new(0, 56, 0, 20)
+StatusPF.Font = Enum.Font.Highway
+StatusPF.Text = "Status:"
+StatusPF.TextColor3 = Color3.new(1, 1, 1)
+StatusPF.TextSize = 20
+StatusPF.TextStrokeTransparency = 0
+
+Status.Name = "Status"
+Status.Parent = BG
+Status.BackgroundTransparency = 1
+Status.Position = UDim2.new(0.6, 0, 0.7, 0)
+Status.Size = UDim2.new(0, 56, 0, 20)
+Status.Font = Enum.Font.Highway
+Status.Text = "off"
+Status.TextColor3 = Color3.new(1, 0, 0)
+Status.TextSize = 20
+Status.TextStrokeTransparency = 0
+
+Credit.Name = "Credit"
+Credit.Parent = BG
+Credit.BackgroundTransparency = 1
+Credit.Position = UDim2.new(0.2, 0, 0.87, 0)
+Credit.Size = UDim2.new(0, 128, 0, 17)
+Credit.Font = Enum.Font.SourceSans
+Credit.Text = "Created by Zuba"
+Credit.TextColor3 = Color3.new(1, 1, 1)
+Credit.TextSize = 16
+Credit.TextStrokeTransparency = 0
+
+-- Tạo hiệu ứng Kamui
 local function CreateKamuiEffect()
-    if not Character then return end
+    local Effect = Instance.new("Part")
+    Effect.Size = Vector3.new(5, 5, 5)
+    Effect.Position = Plr.Character.HumanoidRootPart.Position
+    Effect.Anchored = true
+    Effect.CanCollide = false
+    Effect.Transparency = 1
+    Effect.Parent = Workspace
 
-    -- Kiểm tra nếu đã có hiệu ứng để tránh trùng lặp
-    if Character:FindFirstChild("KamuiEffect") then return end 
+    local Mesh = Instance.new("SpecialMesh", Effect)
+    Mesh.MeshId = KamuiEffect
+    Mesh.TextureId = KamuiEffect
+    Mesh.Scale = Vector3.new(5, 5, 5)
 
-    local RootPart = Character:FindFirstChild("HumanoidRootPart")
-    if not RootPart then return end
-
-    -- Tạo ParticleEmitter
-    local KamuiEffect = Instance.new("ParticleEmitter")
-    KamuiEffect.Name = "KamuiEffect"
-    KamuiEffect.Parent = RootPart
-    KamuiEffect.Texture = "rbxassetid://13226206004" -- Hiệu ứng Portal Kamui
-    KamuiEffect.Rate = 50
-    KamuiEffect.Speed = NumberRange.new(3, 5)
-    KamuiEffect.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 3), NumberSequenceKeypoint.new(1, 0)})
-    KamuiEffect.Lifetime = NumberRange.new(1, 2)
-    KamuiEffect.Rotation = NumberRange.new(-180, 180)
-    KamuiEffect.RotSpeed = NumberRange.new(-100, 100)
-    KamuiEffect.Color = ColorSequence.new(Color3.fromRGB(50, 0, 100), Color3.fromRGB(0, 0, 0)) -- Tím đen
-    KamuiEffect.LightEmission = 0.5
-    KamuiEffect.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)})
-    KamuiEffect.ZOffset = -2
+    game:GetService("Debris"):AddItem(Effect, 2) -- Xóa hiệu ứng sau 2 giây
 end
 
--- Xóa hiệu ứng Kamui khi tắt
-local function RemoveKamuiEffect()
-    if Character then
-        local Effect = Character:FindFirstChild("KamuiEffect")
-        if Effect then
-            Effect:Destroy()
-        end
-    end
-end
-
--- Chỉnh lại Toggle để thêm hiệu ứng Kamui
-Toggle.MouseButton1Click:connect(function()
+-- Nút Toggle
+Toggle.MouseButton1Click:Connect(function()
+    if not Plr.Character or not Plr.Character:FindFirstChild("HumanoidRootPart") then return end
+    
     if Status.Text == "off" then
         Clipon = true
         Status.Text = "on"
-        Status.TextColor3 = Color3.fromRGB(0, 255, 0) -- Xanh khi bật
-        CreateKamuiEffect() -- Bật hiệu ứng Kamui
+        Status.TextColor3 = Color3.new(0, 1, 0)
 
+        -- Tạo hiệu ứng Kamui khi bật
+        CreateKamuiEffect()
+
+        -- Kích hoạt noclip
         Stepped = RunService.Stepped:Connect(function()
-            if not Clipon == false then
-                for _, b in pairs(Workspace:GetChildren()) do
-                    if b.Name == Plr.Name then
-                        for _, v in pairs(Workspace[Plr.Name]:GetChildren()) do
-                            if v:IsA("BasePart") then
-                                v.CanCollide = false
-                            end
-                        end
+            if Clipon then
+                for _, v in pairs(Plr.Character:GetChildren()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
                     end
                 end
             else
@@ -66,10 +128,14 @@ Toggle.MouseButton1Click:connect(function()
             end
         end)
 
-    elseif Status.Text == "on" then
+        task.wait(2) -- Chờ hiệu ứng 2s
+    else
         Clipon = false
         Status.Text = "off"
-        Status.TextColor3 = Color3.fromRGB(255, 0, 0) -- Đỏ khi tắt
-        RemoveKamuiEffect() -- Xóa hiệu ứng Kamui
+        Status.TextColor3 = Color3.new(1, 0, 0)
+
+        -- Tạo hiệu ứng Kamui khi tắt
+        CreateKamuiEffect()
+        task.wait(2) -- Chờ hiệu ứng 2s
     end
 end)
