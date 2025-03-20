@@ -1,118 +1,117 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+-- Tạo GUI Frame
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
 
--- Tạo cửa sổ menu
-local Window = OrionLib:MakeWindow({Name = "My Executor Menu", HidePremium = false, SaveConfig = true, ConfigFolder = "MyConfigs"})
+-- Cấu hình GUI
+ScreenGui.Parent = game.CoreGui
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 250)
+UIListLayout.Parent = MainFrame
 
--- Tạo Tab Skill
-local SkillTab = Window:MakeTab({Name = "Skill", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+-- Hàm tạo nút
+function createToggle(name, callback)
+    local Button = Instance.new("TextButton")
+    Button.Parent = MainFrame
+    Button.Size = UDim2.new(1, 0, 0, 40)
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Text = name
+    local state = false
+    Button.MouseButton1Click:Connect(function()
+        state = not state
+        Button.BackgroundColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
+        callback(state)
+    end)
+end
 
--- Nút bật/tắt No Clip
+-- No Clip
 local noclip = false
-SkillTab:AddToggle({
-    Name = "No Clip",
-    Default = false,
-    Callback = function(state)
-        noclip = state
-        while noclip do
-            for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = false
-                end
-            end
-            wait(0.1)
-        end
-    end
-})
-
--- Nút bật/tắt Invisible
-SkillTab:AddButton({
-    Name = "Invisible",
-    Callback = function()
-        local character = game.Players.LocalPlayer.Character
-        if character then
-            character.Head.Transparency = 1
-            for _, v in pairs(character:GetChildren()) do
-                if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                    v.Transparency = 1
-                    if v:FindFirstChild("face") then
-                        v:FindFirstChild("face"):Destroy()
-                    end
-                end
+createToggle("No Clip", function(state)
+    noclip = state
+    while noclip do
+        for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
             end
         end
+        wait(0.1)
     end
-})
+end)
 
--- Nút bật/tắt Aim Bot
-SkillTab:AddToggle({
-    Name = "Aim Bot",
-    Default = false,
-    Callback = function(state)
-        local aimbot = state
-        local mouse = game.Players.LocalPlayer:GetMouse()
-        local camera = game.Workspace.CurrentCamera
-
-        game:GetService("RunService").RenderStepped:Connect(function()
-            if aimbot then
-                local closest, dist = nil, math.huge
-                for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                        local screenPoint = camera:WorldToScreenPoint(player.Character.Head.Position)
-                        local magnitude = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(screenPoint.X, screenPoint.Y)).magnitude
-                        if magnitude < dist then
-                            closest, dist = player.Character.Head, magnitude
-                        end
-                    end
-                end
-                if closest then
-                    mousemoverel((closest.Position.X - mouse.Hit.p.X) / 2, (closest.Position.Y - mouse.Hit.p.Y) / 2)
-                end
-            end
-        end)
-    end
-})
-
--- Nút bật/tắt Camlock
-SkillTab:AddToggle({
-    Name = "Camlock",
-    Default = false,
-    Callback = function(state)
-        local camlock = state
-        local camera = game.Workspace.CurrentCamera
-        game:GetService("RunService").RenderStepped:Connect(function()
-            if camlock then
-                local target = game.Players:GetPlayers()[2] -- Chọn mục tiêu mặc định
-                if target and target.Character then
-                    camera.CFrame = CFrame.new(camera.CFrame.Position, target.Character.Head.Position)
-                end
-            end
-        end)
-    end
-})
-
--- Tạo Tab Setting
-local SettingTab = Window:MakeTab({Name = "Settings", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-
--- Nút bật/tắt Boost FPS
-SettingTab:AddButton({
-    Name = "Boost FPS",
-    Callback = function()
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
-                v.Material = Enum.Material.SmoothPlastic
-                v.Reflectance = 0
-            elseif v:IsA("Decal") or v:IsA("Texture") then
+-- Invisible
+createToggle("Invisible", function(state)
+    local character = game.Players.LocalPlayer.Character
+    if state and character then
+        for _, v in pairs(character:GetChildren()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
                 v.Transparency = 1
-            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                v.Enabled = false
-            elseif v:IsA("Lighting") then
-                v.Ambient = Color3.new(0, 0, 0)
-                v.Brightness = 1
-                v.GlobalShadows = false
-                v.FogEnd = 9e9
+                if v:FindFirstChild("face") then
+                    v:FindFirstChild("face"):Destroy()
+                end
             end
         end
     end
-})
+end)
 
-OrionLib:Init()
+-- Aim Bot
+createToggle("Aim Bot", function(state)
+    local aimbot = state
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    local camera = game.Workspace.CurrentCamera
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if aimbot then
+            local closest, dist = nil, math.huge
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                    local screenPoint = camera:WorldToScreenPoint(player.Character.Head.Position)
+                    local magnitude = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(screenPoint.X, screenPoint.Y)).magnitude
+                    if magnitude < dist then
+                        closest, dist = player.Character.Head, magnitude
+                    end
+                end
+            end
+            if closest then
+                mousemoverel((closest.Position.X - mouse.Hit.p.X) / 2, (closest.Position.Y - mouse.Hit.p.Y) / 2)
+            end
+        end
+    end)
+end)
+
+-- Camlock
+createToggle("Camlock", function(state)
+    local camlock = state
+    local camera = game.Workspace.CurrentCamera
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if camlock then
+            local target = game.Players:GetPlayers()[2] -- Chọn mục tiêu mặc định
+            if target and target.Character then
+                camera.CFrame = CFrame.new(camera.CFrame.Position, target.Character.Head.Position)
+            end
+        end
+    end)
+end)
+
+-- Boost FPS
+createToggle("Boost FPS", function()
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Enabled = false
+        elseif v:IsA("Lighting") then
+            v.Ambient = Color3.new(0, 0, 0)
+            v.Brightness = 1
+            v.GlobalShadows = false
+            v.FogEnd = 9e9
+        end
+    end
+end)
+
+print("GUI Loaded!")
